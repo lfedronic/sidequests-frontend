@@ -2,11 +2,14 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import LocationTracking from './components/LocationTracking';
+import LoginPage from './components/LoginPage';
+import CreateAccount from './components/CreateAccount';
+import ForgotPassword from './components/ForgotPassword';
 
 const App: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <LocationTracking />
+      <ForgotPassword />
     </SafeAreaView>
   );
 };

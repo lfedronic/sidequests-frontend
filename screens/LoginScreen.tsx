@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import CreateAccount from './CreateAccount';
-import ForgotPassword from './ForgotPassword';
+import CreateAccount from '../components/CreateAccount';
+import ForgotPassword from '../components/ForgotPassword';
 import { API } from '../config';
+import { RootStackParamList } from '../types/RootStackParamList';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-const LoginPage: React.FC = () => {
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+
+
+type LoginPageProps = {
+  navigation: LoginScreenNavigationProp;
+};
+
+const LoginPage: React.FC<LoginPageProps> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -29,6 +38,7 @@ const LoginPage: React.FC = () => {
     .then((data) => {
       console.log('Login successful:', data);
       token = data; // store somewhere
+      navigation.replace("Main");
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -68,12 +78,12 @@ const LoginPage: React.FC = () => {
       </TouchableOpacity>
 
       {/* Forgot Password */}
-      <TouchableOpacity onPress={() => console.log('Forgot password')}>
+      <TouchableOpacity onPress={() => {console.log('Forgot password'); navigation.navigate('ForgotPassword')}}>
         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
 
       {/* Create Account */}
-      <TouchableOpacity onPress={() => console.log('Create account')}>
+      <TouchableOpacity onPress={() => {console.log('Create account'); navigation.navigate('CreateAccount')}}>
         <Text style={styles.createAccountText}>
           Don't have an account? <Text style={styles.linkText}>Create an account</Text>
         </Text>

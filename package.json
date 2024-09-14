@@ -9,6 +9,8 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/stack": "^6.4.1",
     "axios": "^1.7.7",
     "expo": "~51.0.28",
     "expo-image-picker": "^15.0.7",
@@ -18,7 +20,8 @@
     "react-native": "0.74.5",
     "react-native-element-dropdown": "^2.12.1",
     "react-native-maps": "^1.18.0",
-    "react-native-viewport-units": "^0.0.5"
+    "react-native-viewport-units": "^0.0.5",
+    "save": "^2.9.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

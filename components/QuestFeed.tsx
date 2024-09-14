@@ -1,7 +1,7 @@
 import React, { useState, BaseSyntheticEvent } from 'react'; // Add the import statement for useState and NativeSyntheticEvent
 import { TextInputKeyPressEventData } from 'react-native';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, FlatList } from 'react-native';
-import Quest from './Quest';
+import Quest from '../types/Quest';
 
 interface QuestFeedProps{
     quests: Array<Quest>;

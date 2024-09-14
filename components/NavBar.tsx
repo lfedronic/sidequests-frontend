@@ -3,18 +3,19 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface NavBarProps {
     createQuest: () => void;
+    openProfile: () => void;
 }
 
-const SearchBar: React.FC<NavBarProps> = ({createQuest}) => {
+const SearchBar: React.FC<NavBarProps> = ({createQuest, openProfile}) => {
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.button}>
                 <Text style={styles.text}>🏠</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={()=>{; createQuest()}}>
+            <TouchableOpacity style={styles.button} onPress={()=>{createQuest()}}>
                 <Text style={styles.text}>➕</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={()=>{openProfile()}}>
                 <Text style={styles.text}>👤</Text>
             </TouchableOpacity>
         </View>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Touchable } from 'react-native';
-import { SearchFilter } from './SearchFilter';
+import { SearchFilter } from '../types/SearchFilter';
 
 interface SearchFilterComponentProps {
   filterName: string;

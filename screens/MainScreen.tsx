@@ -2,17 +2,21 @@ import React, { useState, useEffect, BaseSyntheticEvent } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Button, Modal } from 'react-native';
 import * as Location from 'expo-location';
 import SearchBar from "../components/SearchBar";
-import SearchFilterComponent from './SearchFilterComponent';
-import {SearchFilter, SearchFilters} from './SearchFilter';
+import SearchFilterComponent from '../components/SearchFilterComponent';
+import {SearchFilter, SearchFilters} from '../types/SearchFilter';
 import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import { Dimensions } from 'react-native';
-import Quest from './Quest';
-import QuestRequest from './QuestRequest';
+import Quest from '../types/Quest';
+import QuestRequest from '../types/QuestRequest';
 import { Dropdown } from 'react-native-element-dropdown';
-import QuestFeed from './QuestFeed';
-import NavBar from './NavBar';
+import QuestFeed from '../components/QuestFeed';
+import NavBar from '../components/NavBar';
 import Axios from 'axios';
-import ModalExample from './ModalExample';
+import ModalExample from '../Modals/ModalExample';
+import LogoutModal from '../Modals/LogoutModal';
+import { RootStackParamList } from '../types/RootStackParamList';
+import { StackNavigationProp } from '@react-navigation/stack';
+
 
 const windowsWidth = Dimensions.get('window').width;
 const windowsHeight = Dimensions.get('window').height;
@@ -27,11 +31,14 @@ const filters : SearchFilters = {
     "similarity" : {ascending: true, weight: 100.0}
 }
 
+type MainScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
 
-
+type MainScreenProps = {
+    navigation: MainScreenNavigationProp;
+};
 
 //name: string, {ascending: boolean, weight: number}>
-const MainScreen: React.FC = () => {
+const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
 
     const [creatingQuest, setCreatingQuest] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -43,6 +50,7 @@ const MainScreen: React.FC = () => {
     const [radius, setRadius] = useState<number>(20000);
     const [searchFilters, setSearchFilters] = useState<SearchFilters>(filters);
     const [region, setRegion] = useState<{ latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number; } | null>(null);
+    const [profileOpen, setProfileOpen] = useState(false);
 
 
     const updateFilter = (filterName : string, newValues : SearchFilter ) => {
@@ -154,6 +162,17 @@ const MainScreen: React.FC = () => {
         setCreatingQuest(false);
     };
 
+    const openProfile = () => {
+        console.log("open profile");
+        setProfileOpen(true);
+    }
+
+    const logOut = () => {
+        console.log("logging out");
+        setProfileOpen(false);
+        navigation.replace("Login");
+    }
+
 return (
     <View style={styles.mainContainer}>
         {showSearchArea &&
@@ -213,9 +232,10 @@ return (
                 <QuestFeed quests={quests}/>
             </View>
         </View>
-        <ModalExample visible={creatingQuest} onClose={closeModal} />
+        <ModalExample visible={creatingQuest} onClose={(closeModal)} />
+        <LogoutModal visible={profileOpen} onClose={() => setProfileOpen(false)} logOut={(logOut)} />
         <View style={styles.bottomNavBar}>
-            <NavBar createQuest={createQuest}/>
+            <NavBar createQuest={createQuest} openProfile={openProfile}/>
         </View>            
         
     </View>

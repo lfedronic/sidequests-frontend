@@ -1,4 +1,4 @@
-interface Quest {
+export type Quest = {
     id: number;
     title: string;
     description: string;
@@ -12,4 +12,3 @@ interface Quest {
     rating?: number;
 }
 
-export default Quest;

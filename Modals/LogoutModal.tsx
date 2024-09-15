@@ -4,13 +4,13 @@ import { Modal, View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity 
 // Get the window dimensions
 const { width, height } = Dimensions.get('window');
 
-interface ModalExampleProps {
+interface LogoutModalProps {
   visible: boolean;
   onClose: () => void;
   logOut: () => void;
 }
 
-const ModalExample: React.FC<ModalExampleProps> = ({ visible, onClose, logOut }) => {
+const LogoutModal: React.FC<LogoutModalProps> = ({ visible, onClose, logOut }) => {
   return (
     <Modal
       animationType="slide"
@@ -60,4 +60,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ModalExample;
+export default LogoutModal;

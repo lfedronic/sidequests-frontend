@@ -1,21 +1,19 @@
 import React, { useState, useEffect, BaseSyntheticEvent } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Button, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Button, Modal, Dimensions } from 'react-native';
+import { Dropdown } from 'react-native-element-dropdown';
+import { StackNavigationProp } from '@react-navigation/stack';
+import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import * as Location from 'expo-location';
+import Axios from 'axios';
 import SearchBar from "../components/SearchBar";
 import SearchFilterComponent from '../components/SearchFilterComponent';
-import {SearchFilter, SearchFilters} from '../types/SearchFilter';
-import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
-import { Dimensions } from 'react-native';
-import Quest from '../types/Quest';
-import QuestRequest from '../types/QuestRequest';
-import { Dropdown } from 'react-native-element-dropdown';
 import QuestFeed from '../components/QuestFeed';
 import NavBar from '../components/NavBar';
-import Axios from 'axios';
-import ModalExample from '../Modals/ModalExample';
-import LogoutModal from '../Modals/LogoutModal';
-import { RootStackParamList } from '../types/RootStackParamList';
-import { StackNavigationProp } from '@react-navigation/stack';
+import QuestLocationSelector from '../components/QuestLocationSelector';
+import { Quest, QuestRequest, SearchFilters, SearchFilter, RootStackParamList} from '../types';
+import ModalExample from '../modals/ModalExample';
+import LogoutModal from '../modals/LogoutModal';
+import { on } from 'events';
 
 
 const windowsWidth = Dimensions.get('window').width;
@@ -37,6 +35,7 @@ type MainScreenProps = {
     navigation: MainScreenNavigationProp;
 };
 
+
 //name: string, {ascending: boolean, weight: number}>
 const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
 
@@ -51,6 +50,8 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     const [searchFilters, setSearchFilters] = useState<SearchFilters>(filters);
     const [region, setRegion] = useState<{ latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number; } | null>(null);
     const [profileOpen, setProfileOpen] = useState(false);
+    const [initialQuestPinSelect, setInitialQuestPinSelect] = useState(false);
+    const [markerPosition, setMarkerPosition] = useState<{latitude: number, longitude: number}>({latitude: defaultLocation[0], longitude: defaultLocation[1]});
 
 
     const updateFilter = (filterName : string, newValues : SearchFilter ) => {
@@ -154,8 +155,12 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     }
 
     const createQuest = () => {
-        console.log("create quest");
-        setCreatingQuest(true);
+        console.log("Your quest!");
+        setShowSearchArea(false);
+        setInitialQuestPinSelect(true);
+        console.log(region?.latitude, region?.longitude);
+        
+        //setCreatingQuest(true);
     }
 
     const closeModal = () => {
@@ -173,12 +178,22 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
         navigation.replace("Login");
     }
 
+    const onMarkerDragEnd = (e: any) => {
+        setMarkerPosition(e.nativeEvent.coordinate);
+    };
+
+    const handleLocationLock = () => {
+        setCreatingQuest(true);
+
+    };
+
+    
+
 return (
     <View style={styles.mainContainer}>
         {showSearchArea &&
         <View style={styles.searchContainer}>
             <SearchBar getText={getSearchText} placeholderText={searchPlaceholder}/>
-            
             <View style={styles.filter}>
                     
                 {Object.entries(searchFilters).map(([filterName, filterData]) => (
@@ -207,13 +222,29 @@ return (
             </View>
             <Button title="hide search" onPress={() => setShowSearchArea(false)}/>
         </View>}
-    
+        {initialQuestPinSelect && 
+                <QuestLocationSelector 
+                    region={region} 
+                    defaultLocation={defaultLocation} 
+                    setMarkerPosition={setMarkerPosition} 
+                    handleLocationLock={handleLocationLock} 
+                />
+            }
         <View style={styles.mapContainer}>
             {!showSearchArea && <Button title="show search" onPress={() => setShowSearchArea(true)}/>}
             <MapView
                 region={region ? region : { latitude: defaultLocation[0], longitude: defaultLocation[1], latitudeDelta: 0.0922, longitudeDelta: 0.0421 }}
-                style={styles.map}
+                style={[styles.map, {zIndex: initialQuestPinSelect ? 1 : -1}]}  onRegionChange={(region) => setRegion(region)}
             >
+                {initialQuestPinSelect && 
+                <Marker
+                coordinate={markerPosition}
+                title="Create Quest"
+                draggable
+                onDragEnd={(onMarkerDragEnd)}
+                //onCalloutPress={()=>console.log("callout pressed")}               
+                 />}
+
                 {quests.map((quest) => (       
                 <Marker 
                     key={quest.id}
@@ -224,19 +255,22 @@ return (
                     title={quest.title}
                 
                 />))}
+
             </MapView>
             <View style={styles.upperMap}>
 
             </View>
             <View style={styles.feedContainer}>
-                <QuestFeed quests={quests}/>
+                {!initialQuestPinSelect && <QuestFeed quests={quests}/>}
             </View>
         </View>
-        <ModalExample visible={creatingQuest} onClose={(closeModal)} />
+        <ModalExample visible={creatingQuest} onClose={(closeModal) } onSubmit={()=>console.log("submitted")} />
         <LogoutModal visible={profileOpen} onClose={() => setProfileOpen(false)} logOut={(logOut)} />
+        {!initialQuestPinSelect &&
         <View style={styles.bottomNavBar}>
             <NavBar createQuest={createQuest} openProfile={openProfile}/>
-        </View>            
+        </View>   
+        }         
         
     </View>
 );
@@ -281,7 +315,6 @@ const styles = StyleSheet.create({
     },
     map: {
         ...StyleSheet.absoluteFillObject,
-        zIndex: -1,
         display : 'flex',
     },
     upperMap: {
@@ -298,8 +331,6 @@ const styles = StyleSheet.create({
     bottomNavBar: {
         flex: 0.5,
         width: '100%',
-        //backgroundColor: 'green',
-        //anchor on bottom of screen
     }
 
 });

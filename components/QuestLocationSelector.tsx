@@ -1,19 +1,22 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
+
 // Define the props interface
 interface QuestLocationSelectorProps {
     region: { latitude: number; longitude: number } | null;
     defaultLocation: [number, number];
     setMarkerPosition: (position: { latitude: number; longitude: number }) => void;
     handleLocationLock: () => void;
+    handleCancel: () => void;
 }
 
 const QuestLocationSelector: React.FC<QuestLocationSelectorProps> = ({ 
     region, 
     defaultLocation, 
     setMarkerPosition, 
-    handleLocationLock 
+    handleLocationLock,
+    handleCancel
 }) => {
     return (
         <View style={styles.container}>
@@ -43,6 +46,11 @@ const QuestLocationSelector: React.FC<QuestLocationSelectorProps> = ({
                 onPress={handleLocationLock}
             >
                 <Text style={styles.lockButtonText}>Lock Location</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={handleCancel}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
         </View>
     );
@@ -86,6 +94,21 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
     },
+    cancelButton: {
+        backgroundColor: '#FF5722',
+        padding: 10,
+        borderRadius: 10,
+        alignItems: 'center',
+        position: 'absolute',
+        right: 5,
+        top: 5,
+        
+
+    },
+    cancelButtonText: {
+        color: '#fff',
+        fontSize: 16,
+    }
 });
 
 export default QuestLocationSelector;

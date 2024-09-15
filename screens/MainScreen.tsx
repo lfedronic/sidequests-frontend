@@ -13,7 +13,7 @@ import QuestLocationSelector from '../components/QuestLocationSelector';
 import { Quest, QuestRequest, SearchFilters, SearchFilter, RootStackParamList} from '../types';
 import ModalExample from '../modals/ModalExample';
 import LogoutModal from '../modals/LogoutModal';
-import { on } from 'events';
+
 
 
 const windowsWidth = Dimensions.get('window').width;
@@ -49,6 +49,7 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     const [radius, setRadius] = useState<number>(20000);
     const [searchFilters, setSearchFilters] = useState<SearchFilters>(filters);
     const [region, setRegion] = useState<{ latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number; } | null>(null);
+    const [regionForMarker, setRegionForMarker] = useState<{ latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number; } | null>(null);
     const [profileOpen, setProfileOpen] = useState(false);
     const [initialQuestPinSelect, setInitialQuestPinSelect] = useState(false);
     const [markerPosition, setMarkerPosition] = useState<{latitude: number, longitude: number}>({latitude: defaultLocation[0], longitude: defaultLocation[1]});
@@ -187,6 +188,11 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
 
     };
 
+    const handleCancel = () => {
+        setInitialQuestPinSelect(false);
+        setCreatingQuest(false);
+        //setRegion({latitude: quests[0].latitude, longitude: quests[0].longitude, latitudeDelta: 0.0421, longitudeDelta: 0.0421});
+    }
     
 
 return (
@@ -224,17 +230,18 @@ return (
         </View>}
         {initialQuestPinSelect && 
                 <QuestLocationSelector 
-                    region={region} 
+                    region={regionForMarker} 
                     defaultLocation={defaultLocation} 
                     setMarkerPosition={setMarkerPosition} 
                     handleLocationLock={handleLocationLock} 
+                    handleCancel={handleCancel}
                 />
             }
         <View style={styles.mapContainer}>
             {!showSearchArea && <Button title="show search" onPress={() => setShowSearchArea(true)}/>}
             <MapView
                 region={region ? region : { latitude: defaultLocation[0], longitude: defaultLocation[1], latitudeDelta: 0.0922, longitudeDelta: 0.0421 }}
-                style={[styles.map, {zIndex: initialQuestPinSelect ? 1 : -1}]}  onRegionChange={(region) => setRegion(region)}
+                style={[styles.map, {zIndex: initialQuestPinSelect ? 1 : -1}]}  onRegionChange={(region) => setRegionForMarker(region)}
             >
                 {initialQuestPinSelect && 
                 <Marker

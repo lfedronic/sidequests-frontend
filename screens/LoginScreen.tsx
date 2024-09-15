@@ -49,6 +49,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigation }) => {
       .then((data) => {
         console.log("message = " + data.message + " and token = " + data.token);
         token = data; // store the token somewhere
+        navigation.replace("Main");
       })
       .catch((error) => {
         setError(error.message);

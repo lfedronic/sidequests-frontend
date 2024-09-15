@@ -7,17 +7,18 @@ import { API } from '../config';
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null); // Add error state
 
   const handleLogin = () => {
     // Handle login logic here
-    
+
     var token = "";
     var url = API + "login";
     const loginData = {
       email: email,    // or email, if that's how you handle the field
       password: password,
     };
-  
+
     fetch(url, {
       method: 'POST',
       headers: {
@@ -25,15 +26,26 @@ const LoginPage: React.FC = () => {
       },
       body: JSON.stringify(loginData),
     })
-    .then((response) => response.text())
-    .then((data) => {
-      console.log('Login successful:', data);
-      token = data; // store somewhere
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
-  };
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json(); // for successful login
+        } else if (response.status === 400) {
+          return response.json().then((data) => {
+            throw new Error(data.message); // handle 400 error and extract message from JSON
+          });
+        } else {
+          throw new Error('Unexpected error: ' + response.status);
+        }
+      })
+      .then((data) => {
+        console.log("message = " + data.message + " and token = " + data.token);
+        token = data; // store the token somewhere
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
+  }
+
 
   return (
     <View style={styles.container}>
@@ -62,6 +74,8 @@ const LoginPage: React.FC = () => {
         />
       </View>
 
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
       {/* Login Button */}
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Login</Text>
@@ -88,7 +102,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    backgroundColor: '#f5f5f5',
+    width: '100%',
   },
   title: {
     fontSize: 28,
@@ -133,6 +147,11 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#007bff',
+  },
+  errorText: {
+    color: 'red', // Style for error message
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 

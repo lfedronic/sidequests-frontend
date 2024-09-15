@@ -1,24 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { API } from '../config';
 
 const CreateAccount: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null); // Add error state
 
   const handleCreateAccount = () => {
-    // Handle create account logic here
-    
+    // Clear any previous error
+    setError(null);
+
     var url = API + "createuser";
     const loginData = {
       username: username,
       email: email,
       password: password,
       points: 0,
+      quests: [],
     };
-    console.log('Creating account with:', loginData);
-  
+
     fetch(url, {
       method: 'POST',
       headers: {
@@ -26,13 +28,23 @@ const CreateAccount: React.FC = () => {
       },
       body: JSON.stringify(loginData),
     })
-    .then((response) => response.text())
-    .then((data) => {
-      console.log('Login successful:', data);
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
+      .then((response) => {
+        if (response.status === 200) {
+          return response.text(); // For successful account creation
+        } else if (response.status === 400) {
+          return response.json().then((data) => {
+            throw new Error(data.message); // Handle 400 error and extract message from JSON
+          });
+        } else {
+          throw new Error('Unexpected error: ' + response.status);
+        }
+      })
+      .then((data) => {
+        console.log('Account created successfully:', data);
+      })
+      .catch((error) => {
+        setError(error.message); // Set error message to display it on the screen
+      });
   };
 
   return (
@@ -73,6 +85,9 @@ const CreateAccount: React.FC = () => {
         />
       </View>
 
+      {/* Error Message */}
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
       {/* Create Account Button */}
       <TouchableOpacity style={styles.createButton} onPress={handleCreateAccount}>
         <Text style={styles.createButtonText}>Create Account</Text>
@@ -87,7 +102,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    backgroundColor: '#f5f5f5',
+    width: '100%',
   },
   title: {
     fontSize: 28,
@@ -120,6 +135,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 

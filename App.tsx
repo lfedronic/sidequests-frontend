@@ -9,7 +9,7 @@ import ForgotPassword from './components/ForgotPassword';
 const App: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <ForgotPassword />
+      <CreateAccount />
     </SafeAreaView>
   );
 };

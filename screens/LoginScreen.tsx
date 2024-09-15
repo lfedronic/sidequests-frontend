@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import CreateAccount from './CreateAccount';
-import ForgotPassword from './ForgotPassword';
+import CreateAccount from '../components/CreateAccount';
+import ForgotPassword from '../components/ForgotPassword';
 import { API } from '../config';
+import { RootStackParamList } from '../types/RootStackParamList';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-const LoginPage: React.FC = () => {
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+
+
+type LoginPageProps = {
+  navigation: LoginScreenNavigationProp;
+};
+
+const LoginPage: React.FC<LoginPageProps> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null); // Add error state
 
   const handleLogin = () => {
     // Handle login logic here
-
+    
     var token = "";
     var url = API + "login";
     const loginData = {
       email: email,    // or email, if that's how you handle the field
       password: password,
     };
-
+  
     fetch(url, {
       method: 'POST',
       headers: {
@@ -26,26 +34,16 @@ const LoginPage: React.FC = () => {
       },
       body: JSON.stringify(loginData),
     })
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json(); // for successful login
-        } else if (response.status === 400) {
-          return response.json().then((data) => {
-            throw new Error(data.message); // handle 400 error and extract message from JSON
-          });
-        } else {
-          throw new Error('Unexpected error: ' + response.status);
-        }
-      })
-      .then((data) => {
-        console.log("message = " + data.message + " and token = " + data.token);
-        token = data; // store the token somewhere
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-  }
-
+    .then((response) => response.text())
+    .then((data) => {
+      console.log('Login successful:', data);
+      token = data; // store somewhere
+      navigation.replace("Main");
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -74,20 +72,18 @@ const LoginPage: React.FC = () => {
         />
       </View>
 
-      {error && <Text style={styles.errorText}>{error}</Text>}
-
       {/* Login Button */}
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Login</Text>
       </TouchableOpacity>
 
       {/* Forgot Password */}
-      <TouchableOpacity onPress={() => console.log('Forgot password')}>
+      <TouchableOpacity onPress={() => {console.log('Forgot password'); navigation.navigate('ForgotPassword')}}>
         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
 
       {/* Create Account */}
-      <TouchableOpacity onPress={() => console.log('Create account')}>
+      <TouchableOpacity onPress={() => {console.log('Create account'); navigation.navigate('CreateAccount')}}>
         <Text style={styles.createAccountText}>
           Don't have an account? <Text style={styles.linkText}>Create an account</Text>
         </Text>
@@ -102,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    width: '100%',
+    backgroundColor: '#f5f5f5',
   },
   title: {
     fontSize: 28,
@@ -147,11 +143,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#007bff',
-  },
-  errorText: {
-    color: 'red', // Style for error message
-    textAlign: 'center',
-    marginBottom: 10,
   },
 });
 

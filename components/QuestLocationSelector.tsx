@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Marker } from 'react-native-maps';
 
 
 // Define the props interface
@@ -8,7 +9,7 @@ interface QuestLocationSelectorProps {
     defaultLocation: [number, number];
     setMarkerPosition: (position: { latitude: number; longitude: number }) => void;
     handleLocationLock: () => void;
-    handleCancel: () => void;
+    handleCancel: () => void;  
 }
 
 const QuestLocationSelector: React.FC<QuestLocationSelectorProps> = ({ 
@@ -16,7 +17,7 @@ const QuestLocationSelector: React.FC<QuestLocationSelectorProps> = ({
     defaultLocation, 
     setMarkerPosition, 
     handleLocationLock,
-    handleCancel
+    handleCancel,
 }) => {
     return (
         <View style={styles.container}>
@@ -43,7 +44,7 @@ const QuestLocationSelector: React.FC<QuestLocationSelectorProps> = ({
 
             <TouchableOpacity 
                 style={styles.lockButton} 
-                onPress={handleLocationLock}
+                onPress = {handleLocationLock}
             >
                 <Text style={styles.lockButtonText}>Lock Location</Text>
             </TouchableOpacity>
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 5,
         top: 5,
-        
+
 
     },
     cancelButtonText: {

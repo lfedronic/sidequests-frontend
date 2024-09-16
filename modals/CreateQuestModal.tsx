@@ -1,24 +1,20 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, StyleSheet, Dimensions, Pressable, TextInput, Button } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { Quest } from '../types/Quest';
 
 // Get the window dimensions
 const { width, height } = Dimensions.get('window');
 
-interface ModalExampleProps {
+interface CreateQuestModalProps {
+  coordinates: {latitude: number, longitude: number};
   visible: boolean;
   onClose: () => void;
-  onSubmit: (quest: Quest) => void;
+  onSubmit: (quest: Partial<Quest>) => void;
 }
 
-export type Quest = {
-  title: string;
-  description: string;
-  time_needed?: number;
-  difficulty?: number;
-};
 
-const ModalExample: React.FC<ModalExampleProps> = ({ visible, onClose, onSubmit }) => {
+const CreateQuestModal: React.FC<CreateQuestModalProps> = ({ coordinates, visible, onClose, onSubmit }) => {
   // State to store the input values
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -26,7 +22,8 @@ const ModalExample: React.FC<ModalExampleProps> = ({ visible, onClose, onSubmit 
   const [difficulty, setDifficulty] = useState<number>(1);
 
   const handleSubmit = () => {
-    const newQuest: Quest = { title, description, time_needed: timeNeeded, difficulty };
+    // calculate closest city based on latitude and longitude 
+    const newQuest: Partial<Quest> = { creator_id: 1, city: "San Francisco", latitude: coordinates.latitude, longitude: coordinates.longitude, title: title, description: description, time_needed: timeNeeded, difficulty: difficulty };
     onSubmit(newQuest);
     onClose(); // Close the modal after submitting
   };
@@ -40,10 +37,9 @@ const ModalExample: React.FC<ModalExampleProps> = ({ visible, onClose, onSubmit 
     >
       {/* Pressable to close the modal when background is pressed */}
       <Pressable style={styles.modalContainer} onPress={onClose}>
-        {/* Prevent modal content from closing when it's pressed */}
         <Pressable style={styles.modalView} onPress={() => {}}>
           <Text style={styles.modalTitle}>Create a Quest</Text>
-
+          <Text>{coordinates.latitude.toFixed(4)},{coordinates.longitude.toFixed(4)}</Text>
           {/* Input for Title */}
           <Text style={styles.label}>Title</Text>
           <TextInput
@@ -69,8 +65,8 @@ const ModalExample: React.FC<ModalExampleProps> = ({ visible, onClose, onSubmit 
           <Slider
             style={{ width: '100%', height: 40 }}
             minimumValue={0}
-            maximumValue={10}
-            step={1}
+            maximumValue={24}
+            step={0.5}
             value={timeNeeded}
             onValueChange={(value) => setTimeNeeded(value)}
             minimumTrackTintColor="#1fb28a"
@@ -154,4 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ModalExample;
+export default CreateQuestModal;

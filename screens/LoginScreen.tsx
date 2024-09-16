@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, Image, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
-import CreateAccount from '../components/CreateAccount';
-import ForgotPassword from '../components/ForgotPassword';
+
 import { API } from '../config';
 import { RootStackParamList } from '../types/RootStackParamList';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -53,6 +52,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigation }) => {
       .catch((error) => {
         setError(error.message);
       });
+      navigation.navigate('Main');
   }
 
   return (

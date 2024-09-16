@@ -22,6 +22,7 @@ const QuestFeed: React.FC<QuestFeedProps> = ({quests}) => {
                 <Text>{"Popularity: " + item.popularity}</Text>
                 <Text>{"Latitude: " + item.latitude}</Text>
                 <Text>{"Longitude: " + item.longitude}</Text>
+                <Text>{"Id: " + item.id}</Text>
             </View></TouchableOpacity>}
             keyExtractor={(item) => item.title}
             contentContainerStyle={styles.container}

@@ -214,6 +214,10 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
         setCreatingQuest(false);
         //setRegion({latitude: quests[0].latitude, longitude: quests[0].longitude, latitudeDelta: 0.0421, longitudeDelta: 0.0421});
     }
+
+    const focusCurrentQuestPin = (quest: Quest) => {  
+        setRegion({latitude: quest.latitude, longitude: quest.longitude, latitudeDelta: 0.0421, longitudeDelta: 0.0421});  
+    };
     
 
 return (
@@ -289,7 +293,7 @@ return (
 
             </View>
             <View style={styles.feedContainer}>
-                {!initialQuestPinSelect && <QuestFeed quests={quests}/>}
+                {!initialQuestPinSelect && <QuestFeed quests={quests} getCurrentQuest={focusCurrentQuestPin}/>}
             </View>
         </View>
         <CreateQuestModal coordinates={{latitude: markerPosition.latitude, longitude: markerPosition.longitude}} visible={creatingQuest} onClose={(closeModal) } onSubmit={(quest) => {submitQuest(quest)}} />
@@ -355,6 +359,7 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',
+        alignContent: 'center',
     },
     bottomNavBar: {
         flex: 0.5,

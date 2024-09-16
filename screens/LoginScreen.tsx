@@ -4,6 +4,7 @@ import { View, Text, Button, Image, StyleSheet, TextInput, TouchableOpacity } fr
 import { API } from '../config';
 import { RootStackParamList } from '../types/RootStackParamList';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { handleLogin } from '../helpers/AuthHelper';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -17,43 +18,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null); // Add error state
 
-  const handleLogin = () => {
-    // Handle login logic here
-
-    var token = "";
-    var url = API + "login";
-    const loginData = {
-      email: email,    // or email, if that's how you handle the field
-      password: password,
-    };
-
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(loginData),
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          return response.json(); // for successful login
-        } else if (response.status === 400) {
-          return response.json().then((data) => {
-            throw new Error(data.message); // handle 400 error and extract message from JSON
-          });
-        } else {
-          throw new Error('Unexpected error: ' + response.status);
-        }
-      })
-      .then((data) => {
-        console.log("message = " + data.message + " and token = " + data.token);
-        token = data; // store the token somewhere
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-      navigation.navigate('Main');
-  }
+  const onSubmit = async () => {
+    try {
+      const data = await handleLogin(email, password);
+      // Handle success, e.g., navigate to another page
+      navigation.navigate("Main"); // Adjust the route as needed
+    } catch (error) {
+      // Handle error, e.g., show an error message to the user
+      console.error("Login failed: ", error.message);
+      alert("Login failed: " + error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -85,7 +60,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ navigation }) => {
       {error && <Text style={styles.errorText}>{error}</Text>}
 
       {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+      <TouchableOpacity style={styles.loginButton} onPress={onSubmit}>
         <Text style={styles.loginButtonText}>Login</Text>
       </TouchableOpacity>
 

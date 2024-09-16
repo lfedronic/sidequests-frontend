@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { API } from '../config';
+import { handleLogin } from '../helpers/AuthHelper';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/RootStackParamList';
 
-const CreateAccount: React.FC = () => {
+type CreateScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CreateAccount'>;
+
+
+type CreatePageProps = {
+  navigation: CreateScreenNavigationProp;
+};
+
+const CreateAccount: React.FC<CreatePageProps> = ({navigation}) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +52,14 @@ const CreateAccount: React.FC = () => {
       })
       .then((data) => {
         console.log('Account created successfully:', data);
+        // Redirect user to the login page
+        try {
+          handleLogin(email, password);
+          navigation.navigate("Main");
+        } catch {
+          setError("Failed to login after creating account");
+        }
+        
       })
       .catch((error) => {
         setError(error.message); // Set error message to display it on the screen

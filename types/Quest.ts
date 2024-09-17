@@ -1,5 +1,6 @@
 export type Quest = {
     id: number;
+    creator_id: number;
     title: string;
     description: string;
     city: string;

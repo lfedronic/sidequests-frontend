@@ -1,5 +1,5 @@
 import React, { useState, useEffect, BaseSyntheticEvent } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Button, Modal, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Button, Modal, Dimensions, KeyboardAvoidingViewComponent } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { StackNavigationProp } from '@react-navigation/stack';
 import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
@@ -11,16 +11,16 @@ import QuestFeed from '../components/QuestFeed';
 import NavBar from '../components/NavBar';
 import QuestLocationSelector from '../components/QuestLocationSelector';
 import { Quest, QuestRequest, SearchFilters, SearchFilter, RootStackParamList} from '../types';
-import ModalExample from '../modals/ModalExample';
+import CreateQuestModal from '../modals/CreateQuestModal';
 import LogoutModal from '../modals/LogoutModal';
-
+import ViewQuestModal from '../modals/ViewQuestModal';
 
 
 const windowsWidth = Dimensions.get('window').width;
 const windowsHeight = Dimensions.get('window').height;
 const searchPlaceholder = 'Hike with great views';
 const defaultLocation : [number, number] = [37.785834, -122.406417];
-
+const creatorId: number = 1;
 
 const filters : SearchFilters = {
     "time_needed" : {ascending: false, weight: 1.0},
@@ -53,6 +53,8 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     const [profileOpen, setProfileOpen] = useState(false);
     const [initialQuestPinSelect, setInitialQuestPinSelect] = useState(false);
     const [markerPosition, setMarkerPosition] = useState<{latitude: number, longitude: number}>({latitude: defaultLocation[0], longitude: defaultLocation[1]});
+    const [viewingQuest, setViewingQuest] = useState(false);
+    const [selectedQuest, setSelectedQuest] = useState<Partial<Quest> | null>(null);
 
 
     const updateFilter = (filterName : string, newValues : SearchFilter ) => {
@@ -75,7 +77,8 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
 
     useEffect(() => {
         const requestBody: QuestRequest = {
-            coordinates: location ? [Number(location.coords.latitude), Number(location.coords.longitude)] : defaultLocation,      
+            latitude: location ? location.coords.latitude : defaultLocation[0],
+            longitude: location ? location.coords.longitude : defaultLocation[1],
             radius: 20000,
             search_query: searchPlaceholder,       
             search_filters : Object.entries(searchFilters).map(([filterName, filterData]) => ({filter: filterName, ascending: filterData.ascending, weight: filterData.weight}))
@@ -89,7 +92,6 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
                         'accept': '*/*'
                     }
                 });
-                
                 setQuests(response.data);
             } catch (err) {
                 console.log(err);
@@ -115,7 +117,8 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
 
     const handleSearch: (text: string) => Promise<void> = async (text: string) => {
         const requestBody: QuestRequest = {
-            coordinates: location ? [Number(location.coords.latitude), Number(location.coords.longitude)] : defaultLocation,      
+            latitude: location ? location.coords.latitude : defaultLocation[0],
+            longitude: location ? location.coords.longitude : defaultLocation[1], 
             radius: radius,
             search_query: text,       
             search_filters : Object.entries(searchFilters).map(([filterName, filterData]) => ({filter: filterName, ascending: filterData.ascending, weight: filterData.weight}))
@@ -144,6 +147,26 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
         }
     };
 
+    const submitQuest: (quest: Partial<Quest>) => Promise<void> = async (quest: Partial<Quest>) => {
+        try {
+            const response = await Axios.post('http://localhost:8080/createquest', quest, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': '*/*'
+                }
+            });
+            console.log(response.data);
+            setCreatingQuest(false);
+            setInitialQuestPinSelect(false);
+            return response.data;
+        }
+        catch (err) {
+            console.log(err);
+            return "bad";
+        }
+        
+    };
+
     const addFilter = (filterName: string, filterData: SearchFilter) => {
         setSearchFilters(prevFilters => ({
             ...prevFilters,
@@ -159,8 +182,7 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
         console.log("Your quest!");
         setShowSearchArea(false);
         setInitialQuestPinSelect(true);
-        console.log(region?.latitude, region?.longitude);
-        
+        console.log(region?.latitude, region?.longitude);   
         //setCreatingQuest(true);
     }
 
@@ -186,6 +208,7 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     const handleLocationLock = () => {
         setCreatingQuest(true);
 
+
     };
 
     const handleCancel = () => {
@@ -193,7 +216,17 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
         setCreatingQuest(false);
         //setRegion({latitude: quests[0].latitude, longitude: quests[0].longitude, latitudeDelta: 0.0421, longitudeDelta: 0.0421});
     }
+
+    const focusCurrentQuestPin = (quest: Quest) => {  
+        setRegion({latitude: quest.latitude, longitude: quest.longitude, latitudeDelta: 0.1, longitudeDelta: 0.1});  
+        
+    };
     
+    const viewQuest = (quest: Quest) => {
+        console.log("viewing quest");
+        setViewingQuest(true);
+        setSelectedQuest(quest);
+    };
 
 return (
     <View style={styles.mainContainer}>
@@ -268,10 +301,11 @@ return (
 
             </View>
             <View style={styles.feedContainer}>
-                {!initialQuestPinSelect && <QuestFeed quests={quests}/>}
+                {!initialQuestPinSelect &&  !viewingQuest && <QuestFeed quests={quests} getQuestForMap={focusCurrentQuestPin} getQuestForView={viewQuest}/>}
             </View>
         </View>
-        <ModalExample visible={creatingQuest} onClose={(closeModal) } onSubmit={()=>console.log("submitted")} />
+        <CreateQuestModal coordinates={{latitude: markerPosition.latitude, longitude: markerPosition.longitude}} visible={creatingQuest} onClose={(closeModal) } onSubmit={(quest) => {submitQuest(quest)}} />
+        <ViewQuestModal visible={viewingQuest} onClose={() => setViewingQuest(false)} quest={selectedQuest ? selectedQuest : {"title": "Quest not found"}}/>
         <LogoutModal visible={profileOpen} onClose={() => setProfileOpen(false)} logOut={(logOut)} />
         {!initialQuestPinSelect &&
         <View style={styles.bottomNavBar}>
@@ -334,6 +368,7 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',
+        alignContent: 'center',
     },
     bottomNavBar: {
         flex: 0.5,

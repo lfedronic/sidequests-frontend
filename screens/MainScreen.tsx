@@ -1,5 +1,5 @@
 import React, { useState, useEffect, BaseSyntheticEvent } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Button, Modal, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Button, Modal, Dimensions, KeyboardAvoidingViewComponent } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { StackNavigationProp } from '@react-navigation/stack';
 import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
@@ -13,7 +13,7 @@ import QuestLocationSelector from '../components/QuestLocationSelector';
 import { Quest, QuestRequest, SearchFilters, SearchFilter, RootStackParamList} from '../types';
 import CreateQuestModal from '../modals/CreateQuestModal';
 import LogoutModal from '../modals/LogoutModal';
-
+import ViewQuestModal from '../modals/ViewQuestModal';
 
 
 const windowsWidth = Dimensions.get('window').width;
@@ -53,6 +53,8 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     const [profileOpen, setProfileOpen] = useState(false);
     const [initialQuestPinSelect, setInitialQuestPinSelect] = useState(false);
     const [markerPosition, setMarkerPosition] = useState<{latitude: number, longitude: number}>({latitude: defaultLocation[0], longitude: defaultLocation[1]});
+    const [viewingQuest, setViewingQuest] = useState(false);
+    const [selectedQuest, setSelectedQuest] = useState<Partial<Quest> | null>(null);
 
 
     const updateFilter = (filterName : string, newValues : SearchFilter ) => {
@@ -145,7 +147,7 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
         }
     };
 
-    const submitQuest: (quest: Quest) => Promise<void> = async (quest: Quest) => {
+    const submitQuest: (quest: Partial<Quest>) => Promise<void> = async (quest: Partial<Quest>) => {
         try {
             const response = await Axios.post('http://localhost:8080/createquest', quest, {
                 headers: {
@@ -216,9 +218,15 @@ const MainScreen: React.FC<MainScreenProps> = ({navigation}) => {
     }
 
     const focusCurrentQuestPin = (quest: Quest) => {  
-        setRegion({latitude: quest.latitude, longitude: quest.longitude, latitudeDelta: 0.0421, longitudeDelta: 0.0421});  
+        setRegion({latitude: quest.latitude, longitude: quest.longitude, latitudeDelta: 0.1, longitudeDelta: 0.1});  
+        
     };
     
+    const viewQuest = (quest: Quest) => {
+        console.log("viewing quest");
+        setViewingQuest(true);
+        setSelectedQuest(quest);
+    };
 
 return (
     <View style={styles.mainContainer}>
@@ -293,10 +301,11 @@ return (
 
             </View>
             <View style={styles.feedContainer}>
-                {!initialQuestPinSelect && <QuestFeed quests={quests} getCurrentQuest={focusCurrentQuestPin}/>}
+                {!initialQuestPinSelect &&  !viewingQuest && <QuestFeed quests={quests} getQuestForMap={focusCurrentQuestPin} getQuestForView={viewQuest}/>}
             </View>
         </View>
         <CreateQuestModal coordinates={{latitude: markerPosition.latitude, longitude: markerPosition.longitude}} visible={creatingQuest} onClose={(closeModal) } onSubmit={(quest) => {submitQuest(quest)}} />
+        <ViewQuestModal visible={viewingQuest} onClose={() => setViewingQuest(false)} quest={selectedQuest ? selectedQuest : {"title": "Quest not found"}}/>
         <LogoutModal visible={profileOpen} onClose={() => setProfileOpen(false)} logOut={(logOut)} />
         {!initialQuestPinSelect &&
         <View style={styles.bottomNavBar}>

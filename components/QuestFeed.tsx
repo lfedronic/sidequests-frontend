@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { Quest } from '../types/Quest';
+import colors from '../aesthetics/Colors';
 
 const width = Dimensions.get('window').width;
 const questWidth = width * 0.8; // Adjust width as per your design
@@ -9,11 +10,13 @@ const snapInterval = questWidth + questMargin * 2; // Calculate total width for 
 
 interface QuestFeedProps {
     quests: Array<Quest>;
-    getCurrentQuest: (quest: Quest) => void;
+    getQuestForMap: (quest: Quest) => void;
+    getQuestForView: (quest: Quest) => void;
 }
 
-const QuestFeed: React.FC<QuestFeedProps> = ({ quests, getCurrentQuest }) => {
+const QuestFeed: React.FC<QuestFeedProps> = ({ quests, getQuestForMap, getQuestForView }) => {
     const [currentQuestIndex, setCurrentQuestIndex] = useState<number>(0); // Track the current snapped quest index
+    const flatListRef = useRef<FlatList>(null);
 
     const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const offsetX = event.nativeEvent.contentOffset.x;
@@ -22,25 +25,30 @@ const QuestFeed: React.FC<QuestFeedProps> = ({ quests, getCurrentQuest }) => {
 
         // Trigger any additional actions here based on the snapped quest
         console.log("Snapped to quest: ", quests[index].title);
-        getCurrentQuest(quests[index]);
+        getQuestForMap(quests[index]);
 
         // You can add any other actions, such as updating other UI elements or fetching data
     };
 
+    const snapToQuest = (quest: Quest) => {
+        const index = quests.findIndex((q) => q.id === quest.id);
+        if (index >= 0) {
+            flatListRef.current?.scrollToIndex({ index: index, animated: true });
+        }
+    };
+
     return (
         <FlatList
+            ref={flatListRef}
             horizontal={true}
             data={quests}
             renderItem={({ item }) => (
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => {getQuestForMap(item); snapToQuest(item); getQuestForView(item)}}>
                     <View style={styles.questContainer}>
-                        <Text>{"Title: " + item.title}</Text>
-                        <Text>{"Difficulty: " + item.difficulty}</Text>
-                        <Text>{"Time needed: " + item.time_needed}</Text>
-                        <Text>{"Popularity: " + item.popularity}</Text>
-                        <Text>{"Latitude: " + item.latitude}</Text>
-                        <Text>{"Longitude: " + item.longitude}</Text>
-                        <Text>{"Id: " + item.id}</Text>
+                        <Text style={styles.questTitle}>{item.title}</Text>
+                        <Text style={styles.questDetail}>{"Difficulty: " + item.difficulty}</Text>
+                        <Text style={styles.questDetail}>{"Time needed: " + (item.time_needed || "N/A")}</Text>
+                        <Text style={styles.questDetail}>{"Popularity: " + (item.popularity || "N/A")}</Text>
                     </View>
                 </TouchableOpacity>
             )}
@@ -61,18 +69,33 @@ const styles = StyleSheet.create({
         paddingHorizontal: questMargin, // Add padding for smooth scrolling
     },
     questContainer: {
-        backgroundColor: "blue",
+        backgroundColor: colors.Cornsilk, // Use Cornsilk background for the card
+        opacity: 0.85, // Add some transparency
         height: "100%",
         width: questWidth,
         marginHorizontal: questMargin,
-        padding: 10,
-        borderRadius: 10,
-        textAlign: "center",
-        alignContent: "center",
-        alignItems: "center",
+        padding: 15,
+        borderRadius: 15,
+        shadowColor: '#000', // Add a shadow effect
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
         justifyContent: "center",
     },
-    text: {
-        color: "yellow",
-    }
+    questTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: "black", // Use Cinnabar for the title
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    questDetail: {
+        fontSize: 14,
+        color: "black", // Use FrenchGray for text
+        marginBottom: 5,
+    },
 });

@@ -4,6 +4,7 @@ import { View, SafeAreaView, StyleSheet, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
+import SearchScreen from './screens/SearchScreen';
 import CreateAccount from './components/CreateAccount';
 import ForgotPassword from './components/ForgotPassword';
 import MainScreen from './screens/MainScreen';
